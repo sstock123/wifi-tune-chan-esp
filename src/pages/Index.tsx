@@ -1,28 +1,59 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ConfigCard from "@/components/ConfigCard";
 import StatusIndicator from "@/components/StatusIndicator";
 import WiFiForm from "@/components/WiFiForm";
 import YoutubeForm from "@/components/YoutubeForm";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { espApi } from "@/lib/api";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [deviceStatus, setDeviceStatus] = useState<
     "connected" | "disconnected" | "connecting"
   >("disconnected");
   const [isLoading, setIsLoading] = useState(false);
+  const [deviceIp, setDeviceIp] = useState("");
   const { toast } = useToast();
+
+  const connectToDevice = async (ip: string) => {
+    try {
+      espApi.setBaseUrl(ip);
+      setDeviceStatus("connecting");
+      const status = await espApi.getStatus();
+      setDeviceStatus(status.wifi_status);
+      toast({
+        title: "Success",
+        description: "Connected to ESP device",
+      });
+    } catch (error) {
+      setDeviceStatus("disconnected");
+      toast({
+        title: "Error",
+        description: "Failed to connect to ESP device",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleWiFiSubmit = async (ssid: string, password: string) => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual API call to ESP device
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulated delay
+      await espApi.updateWiFi(ssid, password);
       toast({
         title: "Success",
         description: "WiFi settings updated successfully",
       });
-      setDeviceStatus("connected");
+      // Wait a bit for the device to reconnect, then check status
+      setTimeout(async () => {
+        try {
+          const status = await espApi.getStatus();
+          setDeviceStatus(status.wifi_status);
+        } catch (error) {
+          setDeviceStatus("disconnected");
+        }
+      }, 5000);
     } catch (error) {
       toast({
         title: "Error",
@@ -38,8 +69,7 @@ const Index = () => {
   const handleYoutubeSubmit = async (channelId: string) => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual API call to ESP device
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulated delay
+      await espApi.updateYoutubeChannel(channelId);
       toast({
         title: "Success",
         description: "YouTube channel ID updated successfully",
@@ -67,10 +97,22 @@ const Index = () => {
           </p>
         </div>
 
-        <StatusIndicator
-          status={deviceStatus}
-          className="mx-auto w-fit rounded-full bg-white px-4 py-2 shadow-sm"
-        />
+        <ConfigCard title="Device Connection">
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter ESP device IP address"
+                value={deviceIp}
+                onChange={(e) => setDeviceIp(e.target.value)}
+              />
+              <Button onClick={() => connectToDevice(deviceIp)}>Connect</Button>
+            </div>
+            <StatusIndicator
+              status={deviceStatus}
+              className="w-fit rounded-full bg-white px-4 py-2 shadow-sm"
+            />
+          </div>
+        </ConfigCard>
 
         <ConfigCard title="WiFi Settings">
           <WiFiForm onSubmit={handleWiFiSubmit} isLoading={isLoading} />
