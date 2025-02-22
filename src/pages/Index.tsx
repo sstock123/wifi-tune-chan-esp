@@ -1,83 +1,41 @@
 
-import { useState, useEffect } from "react";
-import ConfigCard from "@/components/ConfigCard";
-import StatusIndicator from "@/components/StatusIndicator";
-import WiFiForm from "@/components/WiFiForm";
-import YoutubeForm from "@/components/YoutubeForm";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { espApi } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Wifi, Youtube } from "lucide-react";
 
 const Index = () => {
-  const [deviceStatus, setDeviceStatus] = useState<
-    "connected" | "disconnected" | "connecting"
-  >("disconnected");
+  const [ssid, setSsid] = useState("");
+  const [password, setPassword] = useState("");
+  const [channelId, setChannelId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [deviceIp, setDeviceIp] = useState("");
   const { toast } = useToast();
 
-  const connectToDevice = async (ip: string) => {
-    try {
-      espApi.setBaseUrl(ip);
-      setDeviceStatus("connecting");
-      const status = await espApi.getStatus();
-      setDeviceStatus(status.wifi_status);
-      toast({
-        title: "Success",
-        description: "Connected to ESP device",
-      });
-    } catch (error) {
-      setDeviceStatus("disconnected");
-      toast({
-        title: "Error",
-        description: "Failed to connect to ESP device",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleWiFiSubmit = async (ssid: string, password: string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+
     try {
+      // Set base URL to the ESP device's AP address
+      espApi.setBaseUrl("http://192.168.4.1");
+
+      // Update WiFi settings
       await espApi.updateWiFi(ssid, password);
-      toast({
-        title: "Success",
-        description: "WiFi settings updated successfully",
-      });
-      // Wait a bit for the device to reconnect, then check status
-      setTimeout(async () => {
-        try {
-          const status = await espApi.getStatus();
-          setDeviceStatus(status.wifi_status);
-        } catch (error) {
-          setDeviceStatus("disconnected");
-        }
-      }, 5000);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update WiFi settings",
-        variant: "destructive",
-      });
-      setDeviceStatus("disconnected");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleYoutubeSubmit = async (channelId: string) => {
-    setIsLoading(true);
-    try {
+      
+      // Update YouTube channel
       await espApi.updateYoutubeChannel(channelId);
+      
       toast({
-        title: "Success",
-        description: "YouTube channel ID updated successfully",
+        title: "Success!",
+        description: "Device configured successfully. Please wait while it connects to your network.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update YouTube channel ID",
+        description: "Failed to configure device. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -87,40 +45,83 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            ESP Device Configuration
+            YouTube Tracker Setup
           </h1>
           <p className="mt-2 text-gray-600">
-            Update your device's WiFi and YouTube settings
+            Configure your device to track subscriber count
           </p>
         </div>
 
-        <ConfigCard title="Device Connection">
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter ESP device IP address"
-                value={deviceIp}
-                onChange={(e) => setDeviceIp(e.target.value)}
-              />
-              <Button onClick={() => connectToDevice(deviceIp)}>Connect</Button>
-            </div>
-            <StatusIndicator
-              status={deviceStatus}
-              className="w-fit rounded-full bg-white px-4 py-2 shadow-sm"
-            />
-          </div>
-        </ConfigCard>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Wifi className="h-5 w-5" />
+              Network Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="ssid" className="text-sm font-medium">
+                  WiFi Network Name
+                </label>
+                <Input
+                  id="ssid"
+                  placeholder="Enter your WiFi network name"
+                  value={ssid}
+                  onChange={(e) => setSsid(e.target.value)}
+                  required
+                />
+              </div>
 
-        <ConfigCard title="WiFi Settings">
-          <WiFiForm onSubmit={handleWiFiSubmit} isLoading={isLoading} />
-        </ConfigCard>
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium">
+                  WiFi Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your WiFi password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-        <ConfigCard title="YouTube Settings">
-          <YoutubeForm onSubmit={handleYoutubeSubmit} isLoading={isLoading} />
-        </ConfigCard>
+              <div className="space-y-2">
+                <label htmlFor="channelId" className="text-sm font-medium">
+                  <div className="flex items-center gap-2">
+                    <Youtube className="h-5 w-5" />
+                    YouTube Channel ID
+                  </div>
+                </label>
+                <Input
+                  id="channelId"
+                  placeholder="Enter YouTube channel ID"
+                  value={channelId}
+                  onChange={(e) => setChannelId(e.target.value)}
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? "Configuring..." : "Configure Device"}
+              </Button>
+
+              <p className="text-center text-sm text-gray-500">
+                After configuration, the device will connect to your WiFi network
+                and begin tracking subscribers.
+              </p>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
