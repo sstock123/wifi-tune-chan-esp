@@ -39,6 +39,15 @@ class ESPDeviceAPI {
     }
   }
 
+  async verifyWiFi(): Promise<boolean> {
+    const response = await fetch(`${this.baseUrl}/wifi/verify`);
+    if (!response.ok) {
+      return false;
+    }
+    const data = await response.json();
+    return data.connected === true;
+  }
+
   async updateYoutubeChannel(channelId: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/youtube`, {
       method: "POST",
@@ -51,6 +60,22 @@ class ESPDeviceAPI {
     if (!response.ok) {
       throw new Error("Failed to update YouTube channel");
     }
+  }
+
+  async verifyYoutubeChannel(channelId: string): Promise<boolean> {
+    const response = await fetch(`${this.baseUrl}/youtube/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ channelId }),
+    });
+    
+    if (!response.ok) {
+      return false;
+    }
+    const data = await response.json();
+    return data.valid === true;
   }
 }
 

@@ -5,14 +5,56 @@ import { espApi } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wifi, Youtube } from "lucide-react";
+import { Wifi, Youtube, CheckCircle, XCircle } from "lucide-react";
 
 const Index = () => {
   const [ssid, setSsid] = useState("");
   const [password, setPassword] = useState("");
   const [channelId, setChannelId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [wifiVerified, setWifiVerified] = useState(false);
+  const [channelVerified, setChannelVerified] = useState(false);
   const { toast } = useToast();
+
+  const verifyWiFi = async () => {
+    try {
+      const isVerified = await espApi.verifyWiFi();
+      setWifiVerified(isVerified);
+      
+      toast({
+        title: isVerified ? "WiFi Connected!" : "WiFi Connection Failed",
+        description: isVerified 
+          ? "Successfully connected to the network" 
+          : "Could not connect to the network. Please check your credentials.",
+        variant: isVerified ? "default" : "destructive",
+      });
+      
+      return isVerified;
+    } catch (error) {
+      setWifiVerified(false);
+      return false;
+    }
+  };
+
+  const verifyChannel = async () => {
+    try {
+      const isVerified = await espApi.verifyYoutubeChannel(channelId);
+      setChannelVerified(isVerified);
+      
+      toast({
+        title: isVerified ? "Channel Verified!" : "Channel Verification Failed",
+        description: isVerified 
+          ? "Successfully verified YouTube channel" 
+          : "Could not verify the channel. Please check the ID.",
+        variant: isVerified ? "default" : "destructive",
+      });
+      
+      return isVerified;
+    } catch (error) {
+      setChannelVerified(false);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,25 +64,41 @@ const Index = () => {
       // Set base URL to the ESP device's AP address
       espApi.setBaseUrl("http://192.168.4.1");
 
-      // Update WiFi settings
+      // Update and verify WiFi settings
       await espApi.updateWiFi(ssid, password);
+      const wifiOk = await verifyWiFi();
+      if (!wifiOk) {
+        throw new Error("WiFi verification failed");
+      }
       
-      // Update YouTube channel
+      // Update and verify YouTube channel
       await espApi.updateYoutubeChannel(channelId);
+      const channelOk = await verifyChannel();
+      if (!channelOk) {
+        throw new Error("Channel verification failed");
+      }
       
       toast({
         title: "Success!",
-        description: "Device configured successfully. Please wait while it connects to your network.",
+        description: "Device configured successfully. Your subscriber count will now be tracked.",
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to configure device. Please try again.",
+        title: "Setup Failed",
+        description: "Could not complete the setup. Please check your settings and try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const StatusIcon = ({ verified }: { verified: boolean }) => {
+    return verified ? (
+      <CheckCircle className="h-5 w-5 text-green-500" />
+    ) : (
+      <XCircle className="h-5 w-5 text-red-500" />
+    );
   };
 
   return (
@@ -68,13 +126,16 @@ const Index = () => {
                 <label htmlFor="ssid" className="text-sm font-medium">
                   WiFi Network Name
                 </label>
-                <Input
-                  id="ssid"
-                  placeholder="Enter your WiFi network name"
-                  value={ssid}
-                  onChange={(e) => setSsid(e.target.value)}
-                  required
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="ssid"
+                    placeholder="Enter your WiFi network name"
+                    value={ssid}
+                    onChange={(e) => setSsid(e.target.value)}
+                    required
+                  />
+                  <StatusIcon verified={wifiVerified} />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -98,13 +159,16 @@ const Index = () => {
                     YouTube Channel ID
                   </div>
                 </label>
-                <Input
-                  id="channelId"
-                  placeholder="Enter YouTube channel ID"
-                  value={channelId}
-                  onChange={(e) => setChannelId(e.target.value)}
-                  required
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="channelId"
+                    placeholder="Enter YouTube channel ID"
+                    value={channelId}
+                    onChange={(e) => setChannelId(e.target.value)}
+                    required
+                  />
+                  <StatusIcon verified={channelVerified} />
+                </div>
               </div>
 
               <Button
