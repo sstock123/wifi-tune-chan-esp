@@ -13,8 +13,8 @@ const Index = () => {
   const [password, setPassword] = useState("");
   const [channelId, setChannelId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [wifiVerified, setWifiVerified] = useState(false);
-  const [channelVerified, setChannelVerified] = useState(false);
+  const [wifiVerified, setWifiVerified] = useState<boolean | null>(null);
+  const [channelVerified, setChannelVerified] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   const triggerConfetti = () => {
@@ -119,7 +119,8 @@ const Index = () => {
     }
   };
 
-  const StatusIcon = ({ verified }: { verified: boolean }) => {
+  const StatusIcon = ({ verified }: { verified: boolean | null }) => {
+    if (verified === null) return null;
     return verified ? (
       <CheckCircle className="h-5 w-5 text-green-500" />
     ) : (
@@ -152,7 +153,7 @@ const Index = () => {
                 <label htmlFor="ssid" className="text-sm font-medium text-gray-700">
                   WiFi Network Name
                 </label>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <Input
                     id="ssid"
                     placeholder="Enter WiFi name"
@@ -187,7 +188,7 @@ const Index = () => {
                     YouTube Channel ID
                   </div>
                 </label>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <Input
                     id="channelId"
                     placeholder="Enter channel ID"
@@ -218,13 +219,5 @@ const Index = () => {
     </div>
   );
 };
-
-const StatusIcon = ({ verified }: { verified: boolean }) => (
-  verified ? (
-    <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-  ) : (
-    <XCircle className="h-4 w-4 text-red-500 shrink-0" />
-  )
-);
 
 export default Index;
