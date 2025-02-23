@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wifi, Youtube, CheckCircle, XCircle } from "lucide-react";
+import confetti from "canvas-confetti";
 
 const Index = () => {
   const [ssid, setSsid] = useState("");
@@ -16,10 +17,22 @@ const Index = () => {
   const [channelVerified, setChannelVerified] = useState(false);
   const { toast } = useToast();
 
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
   const verifyWiFi = async () => {
     try {
       const isVerified = await espApi.verifyWiFi();
       setWifiVerified(isVerified);
+      
+      if (isVerified) {
+        triggerConfetti();
+      }
       
       toast({
         title: isVerified ? "WiFi Connected!" : "WiFi Connection Failed",
@@ -40,6 +53,10 @@ const Index = () => {
     try {
       const isVerified = await espApi.verifyYoutubeChannel(channelId);
       setChannelVerified(isVerified);
+      
+      if (isVerified) {
+        triggerConfetti();
+      }
       
       toast({
         title: isVerified ? "Channel Verified!" : "Channel Verification Failed",
@@ -78,6 +95,15 @@ const Index = () => {
         throw new Error("Channel verification failed");
       }
       
+      // Final success celebration
+      setTimeout(() => {
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.6 }
+        });
+      }, 300);
+
       toast({
         title: "Success!",
         description: "Device configured successfully. Your subscriber count will now be tracked.",
