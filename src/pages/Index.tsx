@@ -136,7 +136,7 @@ const Index = () => {
             YouTube Tracker Setup
           </h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Configure your device to track subscriber count
+            Configure your device to track your subscriber count
           </p>
         </div>
 
