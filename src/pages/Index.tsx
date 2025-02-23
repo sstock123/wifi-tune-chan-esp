@@ -102,70 +102,73 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
-      <div className="mx-auto max-w-md space-y-6">
+    <div className="min-h-screen bg-white p-4">
+      <div className="mx-auto max-w-md space-y-4">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900">
             YouTube Tracker Setup
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-sm text-gray-600">
             Configure your device to track subscriber count
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Wifi className="h-5 w-5" />
+        <Card className="border border-gray-200">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wifi className="h-4 w-4" />
               Network Configuration
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="ssid" className="text-sm font-medium">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="space-y-1">
+                <label htmlFor="ssid" className="text-sm font-medium text-gray-700">
                   WiFi Network Name
                 </label>
                 <div className="flex gap-2">
                   <Input
                     id="ssid"
-                    placeholder="Enter your WiFi network name"
+                    placeholder="Enter WiFi name"
                     value={ssid}
                     onChange={(e) => setSsid(e.target.value)}
                     required
+                    className="h-9"
                   />
                   <StatusIcon verified={wifiVerified} />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
+              <div className="space-y-1">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   WiFi Password
                 </label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your WiFi password"
+                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-9"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="channelId" className="text-sm font-medium">
+              <div className="space-y-1">
+                <label htmlFor="channelId" className="text-sm font-medium text-gray-700">
                   <div className="flex items-center gap-2">
-                    <Youtube className="h-5 w-5" />
+                    <Youtube className="h-4 w-4" />
                     YouTube Channel ID
                   </div>
                 </label>
                 <div className="flex gap-2">
                   <Input
                     id="channelId"
-                    placeholder="Enter YouTube channel ID"
+                    placeholder="Enter channel ID"
                     value={channelId}
                     onChange={(e) => setChannelId(e.target.value)}
                     required
+                    className="h-9"
                   />
                   <StatusIcon verified={channelVerified} />
                 </div>
@@ -173,15 +176,14 @@ const Index = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-9 text-sm"
                 disabled={isLoading}
               >
                 {isLoading ? "Configuring..." : "Configure Device"}
               </Button>
 
-              <p className="text-center text-sm text-gray-500">
-                After configuration, the device will connect to your WiFi network
-                and begin tracking subscribers.
+              <p className="text-xs text-center text-gray-500 mt-2">
+                Device will connect to WiFi after configuration
               </p>
             </form>
           </CardContent>
@@ -190,5 +192,13 @@ const Index = () => {
     </div>
   );
 };
+
+const StatusIcon = ({ verified }: { verified: boolean }) => (
+  verified ? (
+    <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+  ) : (
+    <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+  )
+);
 
 export default Index;
