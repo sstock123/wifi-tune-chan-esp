@@ -5,7 +5,7 @@ import { espApi } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wifi, Youtube, CheckCircle, XCircle } from "lucide-react";
+import { Wifi, Youtube, CheckCircle, XCircle, Sparkles } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const Index = () => {
@@ -138,6 +138,16 @@ const Index = () => {
           <p className="mt-2 text-sm text-zinc-400">
             Configure your device to track your subscriber count
           </p>
+          
+          {/* Test Button for Confetti */}
+          <Button
+            onClick={triggerConfetti}
+            variant="outline"
+            className="mt-4 border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Test Confetti Effect
+          </Button>
         </div>
 
         <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
