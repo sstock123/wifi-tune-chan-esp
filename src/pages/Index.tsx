@@ -11,6 +11,7 @@ import confetti from "canvas-confetti";
 interface Network {
   ssid: string;
   strength: number;
+  channel: number;  // Added channel information
 }
 
 const Index = () => {
@@ -181,6 +182,7 @@ const Index = () => {
               <Wifi className="h-4 w-4" />
               Network Configuration
             </CardTitle>
+            <p className="text-sm text-zinc-400">Only showing 2.4GHz networks</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -198,7 +200,7 @@ const Index = () => {
                     <option value="">Select a network...</option>
                     {networks.map((network, index) => (
                       <option key={index} value={network.ssid}>
-                        {network.ssid} ({network.strength}%)
+                        {network.ssid} ({network.strength}%) - Ch {network.channel}
                       </option>
                     ))}
                   </select>

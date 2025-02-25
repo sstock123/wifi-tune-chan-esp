@@ -8,6 +8,7 @@ interface DeviceStatus {
 interface Network {
   ssid: string;
   strength: number;
+  channel: number;  // Added channel information
 }
 
 class ESPDeviceAPI {
@@ -35,7 +36,9 @@ class ESPDeviceAPI {
     if (!response.ok) {
       throw new Error("Failed to scan networks");
     }
-    return response.json();
+    const networks: Network[] = await response.json();
+    // Filter to only show 2.4GHz networks (channels 1-13)
+    return networks.filter(network => network.channel >= 1 && network.channel <= 13);
   }
 
   async updateWiFi(ssid: string, password: string): Promise<void> {
