@@ -41,6 +41,18 @@
   animation: fadeUp 0.5s ease-out forwards;
 }
 
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -51,3 +63,53 @@
     transform: translateY(0);
   }
 }
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(0.89);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.search-result {
+  @apply p-3 rounded-md bg-zinc-800/50 border border-zinc-700 transition-all duration-200 cursor-pointer hover:bg-zinc-700/50 hover:border-zinc-600;
+}
+
+.search-result.selected {
+  @apply bg-zinc-700/80 border-zinc-500;
+}
+

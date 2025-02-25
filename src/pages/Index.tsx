@@ -35,6 +35,9 @@ const Index = () => {
   const [showNetworks, setShowNetworks] = useState(false);
   const [showWifiStep, setShowWifiStep] = useState(true);
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [searchResults, setSearchResults] = useState<YouTubeChannel[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<YouTubeChannel | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
 
   const triggerConfetti = () => {
@@ -92,16 +95,17 @@ const Index = () => {
     if (!channelSearch.trim()) return;
     
     setIsSearching(true);
+    setSelectedChannel(null);
     try {
       const channel = await espApi.searchYouTubeChannel(channelSearch);
       if (channel) {
-        setFoundChannel(channel);
-        setChannelId(channel.id);
+        setSearchResults([channel]);
         toast({
-          title: "Channel Found!",
-          description: `Found channel: ${channel.title}`,
+          title: "Channels Found!",
+          description: "Click on a channel to select it",
         });
       } else {
+        setSearchResults([]);
         toast({
           title: "Channel Not Found",
           description: "Could not find a channel with that username or URL",
@@ -149,9 +153,9 @@ const Index = () => {
 
     try {
       espApi.setBaseUrl("http://192.168.4.1");
-
       await espApi.updateWiFi(selectedSsid, password);
       const wifiOk = await verifyWiFi();
+      
       if (!wifiOk) {
         throw new Error("WiFi verification failed");
       }
@@ -161,7 +165,12 @@ const Index = () => {
         description: "Your device is now online. You can now search for your YouTube channel.",
       });
       
-      setShowWifiStep(false);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowWifiStep(false);
+        setIsTransitioning(false);
+      }, 600);
+      
       espApi.setBaseUrl("192.168.1.1");
       
     } catch (error) {
@@ -173,6 +182,13 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleChannelSelect = (channel: YouTubeChannel) => {
+    setSelectedChannel(channel);
+    setChannelSearch(channel.title);
+    setChannelId(channel.id);
+    setFoundChannel(channel);
   };
 
   const handleChannelSubmit = async (e: React.FormEvent) => {
@@ -234,7 +250,7 @@ const Index = () => {
         </div>
 
         {showWifiStep ? (
-          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
+          <Card className={`border-zinc-800 bg-zinc-800/50 backdrop-blur-sm ${isTransitioning ? 'animate-slide-down' : ''}`}>
             <CardHeader className="space-y-1 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg text-white">
                 <Wifi className="h-4 w-4" />
@@ -317,7 +333,7 @@ const Index = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
+          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm animate-slide-up">
             <CardHeader className="space-y-1 pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg text-white">
@@ -346,7 +362,10 @@ const Index = () => {
                       id="channelSearch"
                       placeholder="Enter channel username, URL, or email"
                       value={channelSearch}
-                      onChange={(e) => setChannelSearch(e.target.value)}
+                      onChange={(e) => {
+                        setChannelSearch(e.target.value);
+                        setSelectedChannel(null);
+                      }}
                       className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
                     />
                     <Button
@@ -361,31 +380,41 @@ const Index = () => {
                   </div>
                 </div>
 
-                {foundChannel && (
-                  <div className="p-3 rounded-md bg-zinc-800/50 border border-zinc-700 animate-fade-up">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={foundChannel.thumbnail}
-                        alt={foundChannel.title}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">
-                          {foundChannel.title}
-                        </p>
-                        <p className="text-xs text-zinc-400 truncate">
-                          ID: {foundChannel.id}
-                        </p>
+                {searchResults.length > 0 && (
+                  <div className="space-y-2 animate-fade-up">
+                    {searchResults.map((channel) => (
+                      <div
+                        key={channel.id}
+                        onClick={() => handleChannelSelect(channel)}
+                        className={`search-result ${selectedChannel?.id === channel.id ? 'selected animate-bounce-in' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={channel.thumbnail}
+                            alt={channel.title}
+                            className="w-10 h-10 rounded-full"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">
+                              {channel.title}
+                            </p>
+                            <p className="text-xs text-zinc-400 truncate">
+                              ID: {channel.id}
+                            </p>
+                          </div>
+                          {selectedChannel?.id === channel.id && (
+                            <CheckCircle className="h-5 w-5 text-green-500 animate-bounce-in" />
+                          )}
+                        </div>
                       </div>
-                      <StatusIcon verified={channelVerified} />
-                    </div>
+                    ))}
                   </div>
                 )}
 
                 <Button
                   type="submit"
                   className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
-                  disabled={isLoading || !channelId}
+                  disabled={isLoading || !selectedChannel}
                 >
                   {isLoading ? "Setting up..." : "Setup Channel"}
                 </Button>
