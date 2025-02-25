@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { espApi } from "@/lib/api";
@@ -11,7 +10,13 @@ import confetti from "canvas-confetti";
 interface Network {
   ssid: string;
   strength: number;
-  channel: number;  // Added channel information
+  channel: number;
+}
+
+interface YouTubeChannel {
+  id: string;
+  title: string;
+  thumbnail: string;
 }
 
 const Index = () => {
@@ -19,6 +24,9 @@ const Index = () => {
   const [selectedSsid, setSelectedSsid] = useState("");
   const [password, setPassword] = useState("");
   const [channelId, setChannelId] = useState("");
+  const [channelSearch, setChannelSearch] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [foundChannel, setFoundChannel] = useState<YouTubeChannel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [wifiVerified, setWifiVerified] = useState<boolean | null>(null);
@@ -100,29 +108,56 @@ const Index = () => {
     }
   };
 
+  const searchYouTubeChannel = async () => {
+    if (!channelSearch.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const channel = await espApi.searchYouTubeChannel(channelSearch);
+      if (channel) {
+        setFoundChannel(channel);
+        setChannelId(channel.id);
+        toast({
+          title: "Channel Found!",
+          description: `Found channel: ${channel.title}`,
+        });
+      } else {
+        toast({
+          title: "Channel Not Found",
+          description: "Could not find a channel with that username or URL",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Search Failed",
+        description: "Could not search for YouTube channel",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Set base URL to the ESP device's AP address
       espApi.setBaseUrl("http://192.168.4.1");
 
-      // Update and verify WiFi settings
       await espApi.updateWiFi(selectedSsid, password);
       const wifiOk = await verifyWiFi();
       if (!wifiOk) {
         throw new Error("WiFi verification failed");
       }
       
-      // Update and verify YouTube channel
       await espApi.updateYoutubeChannel(channelId);
       const channelOk = await verifyChannel();
       if (!channelOk) {
         throw new Error("Channel verification failed");
       }
       
-      // Final success celebration
       setTimeout(() => {
         confetti({
           particleCount: 200,
@@ -235,29 +270,57 @@ const Index = () => {
               )}
 
               <div className="space-y-1">
-                <label htmlFor="channelId" className="text-sm font-medium text-zinc-300">
+                <label htmlFor="channelSearch" className="text-sm font-medium text-zinc-300">
                   <div className="flex items-center gap-2">
                     <Youtube className="h-4 w-4" />
-                    YouTube Channel ID
+                    Search YouTube Channel
                   </div>
                 </label>
                 <div className="flex items-center gap-2">
                   <Input
-                    id="channelId"
-                    placeholder="Enter channel ID"
-                    value={channelId}
-                    onChange={(e) => setChannelId(e.target.value)}
-                    required
+                    id="channelSearch"
+                    placeholder="Enter channel username, URL, or email"
+                    value={channelSearch}
+                    onChange={(e) => setChannelSearch(e.target.value)}
                     className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
                   />
-                  <StatusIcon verified={channelVerified} />
+                  <Button
+                    type="button"
+                    onClick={searchYouTubeChannel}
+                    disabled={isSearching || !channelSearch.trim()}
+                    variant="outline"
+                    className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
+
+              {foundChannel && (
+                <div className="p-3 rounded-md bg-zinc-800/50 border border-zinc-700 animate-fade-up">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={foundChannel.thumbnail}
+                      alt={foundChannel.title}
+                      className="w-10 h-10 rounded-full"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">
+                        {foundChannel.title}
+                      </p>
+                      <p className="text-xs text-zinc-400 truncate">
+                        ID: {foundChannel.id}
+                      </p>
+                    </div>
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  </div>
+                </div>
+              )}
 
               <Button
                 type="submit"
                 className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
-                disabled={isLoading || !selectedSsid}
+                disabled={isLoading || !selectedSsid || !channelId}
               >
                 {isLoading ? "Configuring..." : "Configure Device"}
               </Button>

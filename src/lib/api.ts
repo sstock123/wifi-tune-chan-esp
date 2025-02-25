@@ -1,4 +1,3 @@
-
 interface DeviceStatus {
   wifi_status: "connected" | "disconnected";
   ip: string;
@@ -8,14 +7,19 @@ interface DeviceStatus {
 interface Network {
   ssid: string;
   strength: number;
-  channel: number;  // Added channel information
+  channel: number;
+}
+
+interface YouTubeChannel {
+  id: string;
+  title: string;
+  thumbnail: string;
 }
 
 class ESPDeviceAPI {
   private baseUrl: string;
 
   constructor() {
-    // For now, we'll use a hardcoded IP. Later we can add mDNS discovery
     this.baseUrl = "http://192.168.1.1";
   }
 
@@ -37,7 +41,6 @@ class ESPDeviceAPI {
       throw new Error("Failed to scan networks");
     }
     const networks: Network[] = await response.json();
-    // Filter to only show 2.4GHz networks (channels 1-13)
     return networks.filter(network => network.channel >= 1 && network.channel <= 13);
   }
 
@@ -92,6 +95,14 @@ class ESPDeviceAPI {
     }
     const data = await response.json();
     return data.valid === true;
+  }
+
+  async searchYouTubeChannel(query: string): Promise<YouTubeChannel | null> {
+    const response = await fetch(`${this.baseUrl}/youtube/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error("Failed to search YouTube channel");
+    }
+    return response.json();
   }
 }
 
