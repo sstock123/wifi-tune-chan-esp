@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { espApi } from "@/lib/api";
@@ -84,30 +85,6 @@ const Index = () => {
     }
   };
 
-  const verifyChannel = async () => {
-    try {
-      const isVerified = await espApi.verifyYoutubeChannel(channelId);
-      setChannelVerified(isVerified);
-      
-      if (isVerified) {
-        triggerConfetti();
-      }
-      
-      toast({
-        title: isVerified ? "Channel Verified!" : "Channel Verification Failed",
-        description: isVerified 
-          ? "Successfully verified YouTube channel" 
-          : "Could not verify the channel. Please check the ID.",
-        variant: isVerified ? "default" : "destructive",
-      });
-      
-      return isVerified;
-    } catch (error) {
-      setChannelVerified(false);
-      return false;
-    }
-  };
-
   const searchYouTubeChannel = async () => {
     if (!channelSearch.trim()) return;
     
@@ -139,7 +116,31 @@ const Index = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const verifyChannel = async () => {
+    try {
+      const isVerified = await espApi.verifyYoutubeChannel(channelId);
+      setChannelVerified(isVerified);
+      
+      if (isVerified) {
+        triggerConfetti();
+      }
+      
+      toast({
+        title: isVerified ? "Channel Verified!" : "Channel Verification Failed",
+        description: isVerified 
+          ? "Successfully verified YouTube channel" 
+          : "Could not verify the channel. Please check the ID.",
+        variant: isVerified ? "default" : "destructive",
+      });
+      
+      return isVerified;
+    } catch (error) {
+      setChannelVerified(false);
+      return false;
+    }
+  };
+
+  const handleWiFiSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -151,7 +152,31 @@ const Index = () => {
       if (!wifiOk) {
         throw new Error("WiFi verification failed");
       }
+
+      toast({
+        title: "WiFi Connected!",
+        description: "Your device is now online. You can now search for your YouTube channel.",
+      });
       
+      // Reset the base URL to the new IP address
+      espApi.setBaseUrl("192.168.1.1"); // You might need to get the actual IP from the device
+      
+    } catch (error) {
+      toast({
+        title: "WiFi Setup Failed",
+        description: "Could not connect to WiFi. Please check your settings and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChannelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
       await espApi.updateYoutubeChannel(channelId);
       const channelOk = await verifyChannel();
       if (!channelOk) {
@@ -168,12 +193,12 @@ const Index = () => {
 
       toast({
         title: "Success!",
-        description: "Device configured successfully. Your subscriber count will now be tracked.",
+        description: "Your subscriber count will now be tracked.",
       });
     } catch (error) {
       toast({
-        title: "Setup Failed",
-        description: "Could not complete the setup. Please check your settings and try again.",
+        title: "Channel Setup Failed",
+        description: "Could not setup the YouTube channel. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -200,27 +225,18 @@ const Index = () => {
           <p className="mt-2 text-sm text-zinc-400">
             Configure your device to track your subscriber count
           </p>
-          
-          <Button
-            onClick={triggerConfetti}
-            variant="outline"
-            className="mt-4 border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Test Confetti Effect
-          </Button>
         </div>
 
         <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="flex items-center gap-2 text-lg text-white">
               <Wifi className="h-4 w-4" />
-              Network Configuration
+              Step 1: WiFi Setup
             </CardTitle>
             <p className="text-sm text-zinc-400">Only showing 2.4GHz networks</p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleWiFiSubmit} className="space-y-3">
               <div className="space-y-1">
                 <label htmlFor="network" className="text-sm font-medium text-zinc-300">
                   WiFi Network
@@ -269,68 +285,83 @@ const Index = () => {
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label htmlFor="channelSearch" className="text-sm font-medium text-zinc-300">
-                  <div className="flex items-center gap-2">
-                    <Youtube className="h-4 w-4" />
-                    Search YouTube Channel
-                  </div>
-                </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="channelSearch"
-                    placeholder="Enter channel username, URL, or email"
-                    value={channelSearch}
-                    onChange={(e) => setChannelSearch(e.target.value)}
-                    className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
-                  />
-                  <Button
-                    type="button"
-                    onClick={searchYouTubeChannel}
-                    disabled={isSearching || !channelSearch.trim()}
-                    variant="outline"
-                    className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {foundChannel && (
-                <div className="p-3 rounded-md bg-zinc-800/50 border border-zinc-700 animate-fade-up">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={foundChannel.thumbnail}
-                      alt={foundChannel.title}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {foundChannel.title}
-                      </p>
-                      <p className="text-xs text-zinc-400 truncate">
-                        ID: {foundChannel.id}
-                      </p>
-                    </div>
-                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  </div>
-                </div>
-              )}
-
               <Button
                 type="submit"
                 className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
-                disabled={isLoading || !selectedSsid || !channelId}
+                disabled={isLoading || !selectedSsid || !password}
               >
-                {isLoading ? "Configuring..." : "Configure Device"}
+                {isLoading ? "Connecting..." : "Connect to WiFi"}
               </Button>
-
-              <p className="text-xs text-center text-zinc-500 mt-2">
-                Device will connect to WiFi after configuration
-              </p>
             </form>
           </CardContent>
         </Card>
+
+        {wifiVerified && (
+          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm animate-fade-up">
+            <CardHeader className="space-y-1 pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-white">
+                <Youtube className="h-4 w-4" />
+                Step 2: YouTube Channel
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleChannelSubmit} className="space-y-3">
+                <div className="space-y-1">
+                  <label htmlFor="channelSearch" className="text-sm font-medium text-zinc-300">
+                    Search YouTube Channel
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="channelSearch"
+                      placeholder="Enter channel username, URL, or email"
+                      value={channelSearch}
+                      onChange={(e) => setChannelSearch(e.target.value)}
+                      className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
+                    />
+                    <Button
+                      type="button"
+                      onClick={searchYouTubeChannel}
+                      disabled={isSearching || !channelSearch.trim()}
+                      variant="outline"
+                      className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {foundChannel && (
+                  <div className="p-3 rounded-md bg-zinc-800/50 border border-zinc-700 animate-fade-up">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={foundChannel.thumbnail}
+                        alt={foundChannel.title}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">
+                          {foundChannel.title}
+                        </p>
+                        <p className="text-xs text-zinc-400 truncate">
+                          ID: {foundChannel.id}
+                        </p>
+                      </div>
+                      <StatusIcon verified={channelVerified} />
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
+                  disabled={isLoading || !channelId}
+                >
+                  {isLoading ? "Setting up..." : "Setup Channel"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
