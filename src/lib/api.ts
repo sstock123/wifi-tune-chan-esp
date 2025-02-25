@@ -5,6 +5,11 @@ interface DeviceStatus {
   channel_id: string;
 }
 
+interface Network {
+  ssid: string;
+  strength: number;
+}
+
 class ESPDeviceAPI {
   private baseUrl: string;
 
@@ -21,6 +26,14 @@ class ESPDeviceAPI {
     const response = await fetch(`${this.baseUrl}/status`);
     if (!response.ok) {
       throw new Error("Failed to get device status");
+    }
+    return response.json();
+  }
+
+  async scanNetworks(): Promise<Network[]> {
+    const response = await fetch(`${this.baseUrl}/wifi/scan`);
+    if (!response.ok) {
+      throw new Error("Failed to scan networks");
     }
     return response.json();
   }

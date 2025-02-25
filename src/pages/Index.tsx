@@ -5,14 +5,21 @@ import { espApi } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wifi, Youtube, CheckCircle, XCircle, Sparkles } from "lucide-react";
+import { Wifi, Youtube, CheckCircle, XCircle, Sparkles, Search } from "lucide-react";
 import confetti from "canvas-confetti";
 
+interface Network {
+  ssid: string;
+  strength: number;
+}
+
 const Index = () => {
-  const [ssid, setSsid] = useState("");
+  const [networks, setNetworks] = useState<Network[]>([]);
+  const [selectedSsid, setSelectedSsid] = useState("");
   const [password, setPassword] = useState("");
   const [channelId, setChannelId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [wifiVerified, setWifiVerified] = useState<boolean | null>(null);
   const [channelVerified, setChannelVerified] = useState<boolean | null>(null);
   const { toast } = useToast();
@@ -23,6 +30,25 @@ const Index = () => {
       spread: 70,
       origin: { y: 0.6 }
     });
+  };
+
+  const scanNetworks = async () => {
+    setIsScanning(true);
+    try {
+      const response = await espApi.scanNetworks();
+      setNetworks(response);
+      toast({
+        title: "Scan Complete",
+        description: `Found ${response.length} networks`,
+      });
+    } catch (error) {
+      toast({
+        title: "Scan Failed",
+        description: "Could not scan for networks",
+        variant: "destructive",
+      });
+    }
+    setIsScanning(false);
   };
 
   const verifyWiFi = async () => {
@@ -82,7 +108,7 @@ const Index = () => {
       espApi.setBaseUrl("http://192.168.4.1");
 
       // Update and verify WiFi settings
-      await espApi.updateWiFi(ssid, password);
+      await espApi.updateWiFi(selectedSsid, password);
       const wifiOk = await verifyWiFi();
       if (!wifiOk) {
         throw new Error("WiFi verification failed");
@@ -139,7 +165,6 @@ const Index = () => {
             Configure your device to track your subscriber count
           </p>
           
-          {/* Test Button for Confetti */}
           <Button
             onClick={triggerConfetti}
             variant="outline"
@@ -160,36 +185,52 @@ const Index = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="space-y-1">
-                <label htmlFor="ssid" className="text-sm font-medium text-zinc-300">
-                  WiFi Network Name
+                <label htmlFor="network" className="text-sm font-medium text-zinc-300">
+                  WiFi Network
                 </label>
                 <div className="flex items-center gap-2">
-                  <Input
-                    id="ssid"
-                    placeholder="Enter WiFi name"
-                    value={ssid}
-                    onChange={(e) => setSsid(e.target.value)}
-                    required
-                    className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
-                  />
+                  <select
+                    id="network"
+                    value={selectedSsid}
+                    onChange={(e) => setSelectedSsid(e.target.value)}
+                    className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-800/50 text-white px-3 focus:outline-none focus:ring-2 focus:ring-zinc-600"
+                  >
+                    <option value="">Select a network...</option>
+                    {networks.map((network, index) => (
+                      <option key={index} value={network.ssid}>
+                        {network.ssid} ({network.strength}%)
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    onClick={scanNetworks}
+                    disabled={isScanning}
+                    variant="outline"
+                    className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
                   <StatusIcon verified={wifiVerified} />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor="password" className="text-sm font-medium text-zinc-300">
-                  WiFi Password
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
-                />
-              </div>
+              {selectedSsid && (
+                <div className="space-y-1 animate-fade-up">
+                  <label htmlFor="password" className="text-sm font-medium text-zinc-300">
+                    WiFi Password
+                  </label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
+                  />
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label htmlFor="channelId" className="text-sm font-medium text-zinc-300">
@@ -214,7 +255,7 @@ const Index = () => {
               <Button
                 type="submit"
                 className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
-                disabled={isLoading}
+                disabled={isLoading || !selectedSsid}
               >
                 {isLoading ? "Configuring..." : "Configure Device"}
               </Button>
