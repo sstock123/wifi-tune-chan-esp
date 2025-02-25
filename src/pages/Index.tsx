@@ -1,11 +1,11 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { espApi } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wifi, Youtube, CheckCircle, XCircle, Sparkles, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Wifi, Youtube, CheckCircle, XCircle, Search, ArrowLeft } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface Network {
@@ -32,6 +32,9 @@ const Index = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [wifiVerified, setWifiVerified] = useState<boolean | null>(null);
   const [channelVerified, setChannelVerified] = useState<boolean | null>(null);
+  const [showNetworks, setShowNetworks] = useState(false);
+  const [showWifiStep, setShowWifiStep] = useState(true);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const { toast } = useToast();
 
   const triggerConfetti = () => {
@@ -158,8 +161,8 @@ const Index = () => {
         description: "Your device is now online. You can now search for your YouTube channel.",
       });
       
-      // Reset the base URL to the new IP address
-      espApi.setBaseUrl("192.168.1.1"); // You might need to get the actual IP from the device
+      setShowWifiStep(false);
+      espApi.setBaseUrl("192.168.1.1");
       
     } catch (error) {
       toast({
@@ -183,18 +186,9 @@ const Index = () => {
         throw new Error("Channel verification failed");
       }
       
-      setTimeout(() => {
-        confetti({
-          particleCount: 200,
-          spread: 100,
-          origin: { y: 0.6 }
-        });
-      }, 300);
+      triggerConfetti();
+      setShowCompletionDialog(true);
 
-      toast({
-        title: "Success!",
-        description: "Your subscriber count will now be tracked.",
-      });
     } catch (error) {
       toast({
         title: "Channel Setup Failed",
@@ -204,6 +198,18 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleStartScan = async () => {
+    await scanNetworks();
+    setShowNetworks(true);
+  };
+
+  const handleBackToWifi = () => {
+    setShowWifiStep(true);
+    setWifiVerified(null);
+    setSelectedSsid("");
+    setPassword("");
   };
 
   const StatusIcon = ({ verified }: { verified: boolean | null }) => {
@@ -227,82 +233,107 @@ const Index = () => {
           </p>
         </div>
 
-        <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg text-white">
-              <Wifi className="h-4 w-4" />
-              Step 1: WiFi Setup
-            </CardTitle>
-            <p className="text-sm text-zinc-400">Only showing 2.4GHz networks</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleWiFiSubmit} className="space-y-3">
-              <div className="space-y-1">
-                <label htmlFor="network" className="text-sm font-medium text-zinc-300">
-                  WiFi Network
-                </label>
-                <div className="flex items-center gap-2">
-                  <select
-                    id="network"
-                    value={selectedSsid}
-                    onChange={(e) => setSelectedSsid(e.target.value)}
-                    className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-800/50 text-white px-3 focus:outline-none focus:ring-2 focus:ring-zinc-600"
-                  >
-                    <option value="">Select a network...</option>
-                    {networks.map((network, index) => (
-                      <option key={index} value={network.ssid}>
-                        {network.ssid} ({network.strength}%) - Ch {network.channel}
-                      </option>
-                    ))}
-                  </select>
-                  <Button
-                    type="button"
-                    onClick={scanNetworks}
-                    disabled={isScanning}
-                    variant="outline"
-                    className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                  <StatusIcon verified={wifiVerified} />
-                </div>
-              </div>
-
-              {selectedSsid && (
-                <div className="space-y-1 animate-fade-up">
-                  <label htmlFor="password" className="text-sm font-medium text-zinc-300">
-                    WiFi Password
-                  </label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
-                  />
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
-                disabled={isLoading || !selectedSsid || !password}
-              >
-                {isLoading ? "Connecting..." : "Connect to WiFi"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {wifiVerified && (
-          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm animate-fade-up">
+        {showWifiStep ? (
+          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
             <CardHeader className="space-y-1 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg text-white">
-                <Youtube className="h-4 w-4" />
-                Step 2: YouTube Channel
+                <Wifi className="h-4 w-4" />
+                Step 1: WiFi Setup
               </CardTitle>
+              <p className="text-sm text-zinc-400">Only showing 2.4GHz networks</p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleWiFiSubmit} className="space-y-3">
+                <div className="space-y-1">
+                  <label htmlFor="network" className="text-sm font-medium text-zinc-300">
+                    WiFi Network
+                  </label>
+                  {!showNetworks ? (
+                    <Button
+                      type="button"
+                      onClick={handleStartScan}
+                      disabled={isScanning}
+                      className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Search for Networks
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <select
+                        id="network"
+                        value={selectedSsid}
+                        onChange={(e) => setSelectedSsid(e.target.value)}
+                        className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-800/50 text-white px-3 focus:outline-none focus:ring-2 focus:ring-zinc-600"
+                      >
+                        <option value="">Select a network...</option>
+                        {networks.map((network, index) => (
+                          <option key={index} value={network.ssid}>
+                            {network.ssid} ({network.strength}%) - Ch {network.channel}
+                          </option>
+                        ))}
+                      </select>
+                      <Button
+                        type="button"
+                        onClick={handleStartScan}
+                        disabled={isScanning}
+                        variant="outline"
+                        className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                      <StatusIcon verified={wifiVerified} />
+                    </div>
+                  )}
+                </div>
+
+                {selectedSsid && (
+                  <div className="space-y-1 animate-fade-up">
+                    <label htmlFor="password" className="text-sm font-medium text-zinc-300">
+                      WiFi Password
+                    </label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
+                    />
+                  </div>
+                )}
+
+                {selectedSsid && (
+                  <Button
+                    type="submit"
+                    className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Connecting..." : "Connect to WiFi"}
+                  </Button>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm">
+            <CardHeader className="space-y-1 pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg text-white">
+                  <Youtube className="h-4 w-4" />
+                  Step 2: YouTube Channel
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToWifi}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back to WiFi
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleChannelSubmit} className="space-y-3">
@@ -363,6 +394,25 @@ const Index = () => {
           </Card>
         )}
       </div>
+
+      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-white">Setup Complete! 🎉</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Your YouTube Tracker has been successfully configured and is ready to use. You can now close this window.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setShowCompletionDialog(false)}
+              className="bg-white text-zinc-900 hover:bg-zinc-200"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
