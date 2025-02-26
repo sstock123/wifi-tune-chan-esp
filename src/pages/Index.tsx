@@ -272,14 +272,9 @@ const Index = () => {
         {showWifiStep ? (
           <Card className={`${isTransitioning ? 'animate-slide-down' : ''}`}>
             <CardHeader className="space-y-1 pb-4">
-              <CardTitle className="flex items-center justify-between text-lg">
-                <div className="flex items-center gap-2">
-                  <Wifi className="h-4 w-4" />
-                  Step 1: WiFi Setup
-                </div>
-                {wifiVerified === true && (
-                  <CheckCircle className="h-5 w-5 text-green-500 animate-fade-in" />
-                )}
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Wifi className="h-4 w-4" />
+                WiFi Setup
               </CardTitle>
               <p className="text-sm text-muted-foreground">Only showing 2.4GHz networks</p>
             </CardHeader>
@@ -338,18 +333,10 @@ const Index = () => {
           <Card className="animate-slide-up">
             <CardHeader className="space-y-1 pb-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <Wifi className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Step 1</span>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  </div>
-                  <span className="text-muted-foreground mx-2">→</span>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Youtube className="h-4 w-4" />
-                    Step 2: YouTube Channel
-                  </CardTitle>
-                </div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Youtube className="h-4 w-4" />
+                  YouTube Channel
+                </CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
