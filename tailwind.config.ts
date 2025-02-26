@@ -19,11 +19,11 @@ export default {
     },
     extend: {
       colors: {
-        border: "#E5E5E5",
-        input: "#F1F1F1",
-        ring: "#FF0000",
-        background: "#FFFFFF",
-        foreground: "#0F0F0F",
+        border: "#333333",
+        input: "#333333",
+        ring: "#333333",
+        background: "#0F0F0F",
+        foreground: "#FFFFFF",
         primary: {
           DEFAULT: "#FF0000", // YouTube Red
           foreground: "#FFFFFF",
@@ -37,20 +37,20 @@ export default {
           foreground: "#FFFFFF",
         },
         muted: {
-          DEFAULT: "#F1F1F1",
-          foreground: "#606060",
+          DEFAULT: "#272727",
+          foreground: "#AAAAAA",
         },
         accent: {
-          DEFAULT: "#F1F1F1",
-          foreground: "#0F0F0F",
+          DEFAULT: "#272727",
+          foreground: "#FFFFFF",
         },
         popover: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#0F0F0F",
+          DEFAULT: "#272727",
+          foreground: "#FFFFFF",
         },
         card: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#0F0F0F",
+          DEFAULT: "#272727",
+          foreground: "#FFFFFF",
         },
       },
       keyframes: {
