@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { espApi } from "@/lib/api";
@@ -74,6 +73,10 @@ const Index = () => {
     try {
       const isVerified = await espApi.verifyWiFi();
       setWifiVerified(isVerified);
+      
+      if (isVerified) {
+        triggerConfetti();
+      }
       
       toast({
         title: isVerified ? "WiFi Connected!" : "WiFi Connection Failed",
@@ -452,12 +455,7 @@ const Index = () => {
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Connect to Network</span>
-              {wifiVerified === true && (
-                <CheckCircle className="h-5 w-5 text-green-500 animate-fade-in" />
-              )}
-            </DialogTitle>
+            <DialogTitle>Connect to Network</DialogTitle>
             <DialogDescription>
               Enter the password for "{selectedSsid}"
             </DialogDescription>
