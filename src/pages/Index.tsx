@@ -184,15 +184,25 @@ const Index = () => {
     }
   };
 
+  const handleNetworkSelect = (network: Network) => {
+    if (selectedSsid === network.ssid) {
+      setSelectedSsid("");
+      setPassword("");
+      setWifiVerified(null);
+    } else {
+      setSelectedSsid(network.ssid);
+      setPassword("");
+      setWifiVerified(null);
+    }
+  };
+
   const handleChannelSelect = (channel: YouTubeChannel) => {
-    // If the channel is already selected, deselect it
     if (selectedChannel?.id === channel.id) {
       setSelectedChannel(null);
       setChannelSearch('');
       setChannelId('');
       setFoundChannel(null);
     } else {
-      // Select the new channel
       setSelectedChannel(channel);
       setChannelSearch(channel.title);
       setChannelId(channel.id);
@@ -227,7 +237,6 @@ const Index = () => {
 
   const handleStartScan = async () => {
     await scanNetworks();
-    setShowNetworks(true);
   };
 
   const handleBackToWifi = () => {
@@ -270,47 +279,53 @@ const Index = () => {
             <CardContent>
               <form onSubmit={handleWiFiSubmit} className="space-y-3">
                 <div className="space-y-1">
-                  <label htmlFor="network" className="text-sm font-medium text-zinc-300">
+                  <label className="text-sm font-medium text-zinc-300">
                     WiFi Network
                   </label>
-                  {!showNetworks ? (
-                    <Button
-                      type="button"
-                      onClick={handleStartScan}
-                      disabled={isScanning}
-                      className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Search for Networks
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <select
-                        id="network"
-                        value={selectedSsid}
-                        onChange={(e) => setSelectedSsid(e.target.value)}
-                        className="w-full h-9 rounded-md border border-zinc-700 bg-zinc-800/50 text-white px-3 focus:outline-none focus:ring-2 focus:ring-zinc-600"
-                      >
-                        <option value="">Select a network...</option>
-                        {networks.map((network, index) => (
-                          <option key={index} value={network.ssid}>
-                            {network.ssid} ({network.strength}%) - Ch {network.channel}
-                          </option>
-                        ))}
-                      </select>
-                      <Button
-                        type="button"
-                        onClick={handleStartScan}
-                        disabled={isScanning}
-                        variant="outline"
-                        className="border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
-                      >
-                        <Search className="h-4 w-4" />
-                      </Button>
-                      <StatusIcon verified={wifiVerified} />
-                    </div>
-                  )}
+                  <Button
+                    type="button"
+                    onClick={handleStartScan}
+                    disabled={isScanning}
+                    className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                  >
+                    <Search className="h-4 w-4 mr-2" />
+                    {isScanning ? "Searching..." : networks.length ? "Search Again" : "Search for Networks"}
+                  </Button>
                 </div>
+
+                {networks.length > 0 && (
+                  <div className="space-y-2 animate-fade-up">
+                    {networks.map((network, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleNetworkSelect(network)}
+                        className={`search-result ${selectedSsid === network.ssid ? 'selected animate-bounce-in' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            handleNetworkSelect(network);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Wifi className={`h-5 w-5 ${network.strength > 70 ? 'text-green-500' : network.strength > 40 ? 'text-yellow-500' : 'text-red-500'}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">
+                              {network.ssid}
+                            </p>
+                            <p className="text-xs text-zinc-400">
+                              Signal: {network.strength}% - Channel: {network.channel}
+                            </p>
+                          </div>
+                          {selectedSsid === network.ssid && (
+                            <CheckCircle className="h-5 w-5 text-green-500 animate-bounce-in" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {selectedSsid && (
                   <div className="space-y-1 animate-fade-up">
@@ -373,7 +388,6 @@ const Index = () => {
                       value={channelSearch}
                       onChange={(e) => {
                         setChannelSearch(e.target.value);
-                        // Clear selection when search text changes
                         if (selectedChannel) {
                           setSelectedChannel(null);
                           setChannelId('');
