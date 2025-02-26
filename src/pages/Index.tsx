@@ -185,10 +185,19 @@ const Index = () => {
   };
 
   const handleChannelSelect = (channel: YouTubeChannel) => {
-    setSelectedChannel(channel);
-    setChannelSearch(channel.title);
-    setChannelId(channel.id);
-    setFoundChannel(channel);
+    // If the channel is already selected, deselect it
+    if (selectedChannel?.id === channel.id) {
+      setSelectedChannel(null);
+      setChannelSearch('');
+      setChannelId('');
+      setFoundChannel(null);
+    } else {
+      // Select the new channel
+      setSelectedChannel(channel);
+      setChannelSearch(channel.title);
+      setChannelId(channel.id);
+      setFoundChannel(channel);
+    }
   };
 
   const handleChannelSubmit = async (e: React.FormEvent) => {
@@ -364,7 +373,11 @@ const Index = () => {
                       value={channelSearch}
                       onChange={(e) => {
                         setChannelSearch(e.target.value);
-                        setSelectedChannel(null);
+                        // Clear selection when search text changes
+                        if (selectedChannel) {
+                          setSelectedChannel(null);
+                          setChannelId('');
+                        }
                       }}
                       className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
                     />
@@ -387,6 +400,13 @@ const Index = () => {
                         key={channel.id}
                         onClick={() => handleChannelSelect(channel)}
                         className={`search-result ${selectedChannel?.id === channel.id ? 'selected animate-bounce-in' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            handleChannelSelect(channel);
+                          }
+                        }}
                       >
                         <div className="flex items-center gap-3">
                           <img
