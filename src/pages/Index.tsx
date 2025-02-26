@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { espApi } from "@/lib/api";
@@ -270,7 +271,7 @@ const Index = () => {
         </div>
 
         {showWifiStep ? (
-          <Card className={`border-input bg-card ${isTransitioning ? 'animate-slide-down' : ''}`}>
+          <Card className={`${isTransitioning ? 'animate-slide-down' : ''}`}>
             <CardHeader className="space-y-1 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Wifi className="h-4 w-4" />
@@ -302,7 +303,7 @@ const Index = () => {
                       <div
                         key={index}
                         onClick={() => handleNetworkSelect(network)}
-                        className="p-3 rounded-md hover:bg-muted transition-colors cursor-pointer"
+                        className="p-3 rounded-md hover:bg-muted transition-colors cursor-pointer border border-input"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -314,7 +315,7 @@ const Index = () => {
                         <div className="flex items-center gap-3">
                           <Wifi className={`h-5 w-5 ${network.strength > 70 ? 'text-green-500' : network.strength > 40 ? 'text-yellow-500' : 'text-red-500'}`} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                               {network.ssid}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -330,7 +331,7 @@ const Index = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-input bg-card animate-slide-up">
+          <Card className="animate-slide-up">
             <CardHeader className="space-y-1 pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -392,7 +393,7 @@ const Index = () => {
                       <div
                         key={channel.id}
                         onClick={() => handleChannelSelect(channel)}
-                        className={`p-3 rounded-md hover:bg-muted transition-colors cursor-pointer ${
+                        className={`p-3 rounded-md hover:bg-muted transition-colors cursor-pointer border border-input ${
                           selectedChannel?.id === channel.id ? 'bg-muted' : ''
                         }`}
                         role="button"
@@ -410,7 +411,7 @@ const Index = () => {
                             className="w-10 h-10 rounded-full"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                               {channel.title}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
@@ -440,10 +441,10 @@ const Index = () => {
       </div>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="bg-background border-input">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Connect to Network</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
+            <DialogTitle>Connect to Network</DialogTitle>
+            <DialogDescription>
               Enter the password for "{selectedSsid}"
             </DialogDescription>
           </DialogHeader>
@@ -493,10 +494,10 @@ const Index = () => {
       </Dialog>
 
       <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
-        <DialogContent className="bg-background border-input">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Setup Complete! 🎉</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
+            <DialogTitle>Setup Complete! 🎉</DialogTitle>
+            <DialogDescription>
               Your YouTube Tracker has been successfully configured and is ready to use. You can now close this window.
             </DialogDescription>
           </DialogHeader>
