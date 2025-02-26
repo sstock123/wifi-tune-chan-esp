@@ -2,7 +2,6 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -20,38 +19,38 @@ export default {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "#E5E5E5",
+        input: "#F1F1F1",
+        ring: "#FF0000",
+        background: "#FFFFFF",
+        foreground: "#0F0F0F",
         primary: {
-          DEFAULT: "#14B8A6",
+          DEFAULT: "#FF0000", // YouTube Red
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#F43F5E",
+          DEFAULT: "#065FD4", // YouTube Blue
           foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#FF0000",
+          foreground: "#FFFFFF",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#F1F1F1",
+          foreground: "#606060",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#F1F1F1",
+          foreground: "#0F0F0F",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#FFFFFF",
+          foreground: "#0F0F0F",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#FFFFFF",
+          foreground: "#0F0F0F",
         },
       },
       keyframes: {

@@ -255,37 +255,41 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="mx-auto max-w-md space-y-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">
-            YouTube Tracker Setup
-          </h1>
-          <p className="mt-2 text-sm text-zinc-400">
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <Youtube className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground">
+              Subscriber Tracker
+            </h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
             Configure your device to track your subscriber count
           </p>
         </div>
 
         {showWifiStep ? (
-          <Card className={`border-zinc-800 bg-zinc-800/50 backdrop-blur-sm ${isTransitioning ? 'animate-slide-down' : ''}`}>
+          <Card className={`border-input bg-card ${isTransitioning ? 'animate-slide-down' : ''}`}>
             <CardHeader className="space-y-1 pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg text-white">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Wifi className="h-4 w-4" />
                 Step 1: WiFi Setup
               </CardTitle>
-              <p className="text-sm text-zinc-400">Only showing 2.4GHz networks</p>
+              <p className="text-sm text-muted-foreground">Only showing 2.4GHz networks</p>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-zinc-300">
+                  <label className="text-sm font-medium">
                     WiFi Network
                   </label>
                   <Button
                     type="button"
                     onClick={handleStartScan}
                     disabled={isScanning}
-                    className="w-full border-zinc-700 bg-zinc-800/50 text-white hover:bg-zinc-700"
+                    variant="outline"
+                    className="w-full"
                   >
                     <Search className="h-4 w-4 mr-2" />
                     {isScanning ? "Searching..." : networks.length ? "Search Again" : "Search for Networks"}
@@ -298,7 +302,7 @@ const Index = () => {
                       <div
                         key={index}
                         onClick={() => handleNetworkSelect(network)}
-                        className="search-result"
+                        className="p-3 rounded-md hover:bg-muted transition-colors cursor-pointer"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -310,10 +314,10 @@ const Index = () => {
                         <div className="flex items-center gap-3">
                           <Wifi className={`h-5 w-5 ${network.strength > 70 ? 'text-green-500' : network.strength > 40 ? 'text-yellow-500' : 'text-red-500'}`} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white truncate">
+                            <p className="text-sm font-medium truncate">
                               {network.ssid}
                             </p>
-                            <p className="text-xs text-zinc-400">
+                            <p className="text-xs text-muted-foreground">
                               Signal: {network.strength}% - Channel: {network.channel}
                             </p>
                           </div>
@@ -326,10 +330,10 @@ const Index = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-zinc-800 bg-zinc-800/50 backdrop-blur-sm animate-slide-up">
+          <Card className="border-input bg-card animate-slide-up">
             <CardHeader className="space-y-1 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg text-white">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Youtube className="h-4 w-4" />
                   Step 2: YouTube Channel
                 </CardTitle>
@@ -337,7 +341,7 @@ const Index = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleBackToWifi}
-                  className="text-zinc-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Back to WiFi
@@ -347,7 +351,7 @@ const Index = () => {
             <CardContent>
               <form onSubmit={handleChannelSubmit} className="space-y-3">
                 <div className="space-y-1">
-                  <label htmlFor="channelSearch" className="text-sm font-medium text-zinc-300">
+                  <label htmlFor="channelSearch" className="text-sm font-medium">
                     Search YouTube Channel
                   </label>
                   <div className="flex items-center gap-2">
@@ -362,13 +366,13 @@ const Index = () => {
                           setChannelId('');
                         }
                       }}
-                      className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
+                      className="h-9"
                     />
                     <Button
                       type="button"
                       onClick={searchYouTubeChannel}
                       disabled={isSearching || !channelSearch.trim()}
-                      className="h-9 bg-white text-zinc-900 hover:bg-zinc-200"
+                      className="h-9"
                     >
                       {isSearching ? (
                         "Searching..."
@@ -388,7 +392,9 @@ const Index = () => {
                       <div
                         key={channel.id}
                         onClick={() => handleChannelSelect(channel)}
-                        className={`search-result ${selectedChannel?.id === channel.id ? 'selected animate-bounce-in' : ''}`}
+                        className={`p-3 rounded-md hover:bg-muted transition-colors cursor-pointer ${
+                          selectedChannel?.id === channel.id ? 'bg-muted' : ''
+                        }`}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -404,10 +410,10 @@ const Index = () => {
                             className="w-10 h-10 rounded-full"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white truncate">
+                            <p className="text-sm font-medium truncate">
                               {channel.title}
                             </p>
-                            <p className="text-xs text-zinc-400 truncate">
+                            <p className="text-xs text-muted-foreground truncate">
                               ID: {channel.id}
                             </p>
                           </div>
@@ -422,7 +428,7 @@ const Index = () => {
 
                 <Button
                   type="submit"
-                  className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
+                  className="w-full h-9 text-sm bg-primary text-white hover:bg-primary/90"
                   disabled={isLoading || !selectedChannel}
                 >
                   {isLoading ? "Setting up..." : "Setup Channel"}
@@ -434,10 +440,10 @@ const Index = () => {
       </div>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-800">
+        <DialogContent className="bg-background border-input">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-white">Connect to Network</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogTitle className="text-xl font-semibold">Connect to Network</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Enter the password for "{selectedSsid}"
             </DialogDescription>
           </DialogHeader>
@@ -449,13 +455,13 @@ const Index = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500 pr-10"
+                className="h-9 pr-10"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-0 top-0 h-full px-3 text-zinc-400 hover:text-white"
+                className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -470,14 +476,14 @@ const Index = () => {
                   setPassword("");
                   setShowPassword(false);
                 }}
-                className="text-zinc-400 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Back
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-white text-zinc-900 hover:bg-zinc-200"
+                className="bg-primary text-white hover:bg-primary/90"
               >
                 {isLoading ? "Connecting..." : "Connect"}
               </Button>
@@ -487,17 +493,17 @@ const Index = () => {
       </Dialog>
 
       <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-800">
+        <DialogContent className="bg-background border-input">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-white">Setup Complete! 🎉</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogTitle className="text-xl font-semibold">Setup Complete! 🎉</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Your YouTube Tracker has been successfully configured and is ready to use. You can now close this window.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
             <Button
               onClick={() => setShowCompletionDialog(false)}
-              className="bg-white text-zinc-900 hover:bg-zinc-200"
+              className="bg-primary text-white hover:bg-primary/90"
             >
               Close
             </Button>
