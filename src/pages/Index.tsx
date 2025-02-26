@@ -399,7 +399,7 @@ const Index = () => {
                       type="button"
                       onClick={searchYouTubeChannel}
                       disabled={isSearching || !channelSearch.trim()}
-                      className="h-9 bg-white text-zinc-900 hover:bg-zinc-200 px-4"
+                      className="h-9 bg-white text-zinc-900 hover:bg-zinc-200"
                     >
                       {isSearching ? (
                         "Searching..."
