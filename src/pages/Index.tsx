@@ -452,7 +452,12 @@ const Index = () => {
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Connect to Network</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Connect to Network</span>
+              {wifiVerified === true && (
+                <CheckCircle className="h-5 w-5 text-green-500 animate-fade-in" />
+              )}
+            </DialogTitle>
             <DialogDescription>
               Enter the password for "{selectedSsid}"
             </DialogDescription>
