@@ -4,8 +4,8 @@ import { espApi } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Wifi, Youtube, CheckCircle, XCircle, Search, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Wifi, Youtube, CheckCircle, XCircle, Search, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface Network {
@@ -24,6 +24,8 @@ const Index = () => {
   const [networks, setNetworks] = useState<Network[]>([]);
   const [selectedSsid, setSelectedSsid] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [channelId, setChannelId] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -172,6 +174,7 @@ const Index = () => {
       }, 600);
       
       espApi.setBaseUrl("192.168.1.1");
+      setShowPasswordDialog(false);
       
     } catch (error) {
       toast({
@@ -185,15 +188,11 @@ const Index = () => {
   };
 
   const handleNetworkSelect = (network: Network) => {
-    if (selectedSsid === network.ssid) {
-      setSelectedSsid("");
-      setPassword("");
-      setWifiVerified(null);
-    } else {
-      setSelectedSsid(network.ssid);
-      setPassword("");
-      setWifiVerified(null);
-    }
+    setSelectedSsid(network.ssid);
+    setPassword("");
+    setShowPassword(false);
+    setWifiVerified(null);
+    setShowPasswordDialog(true);
   };
 
   const handleChannelSelect = (channel: YouTubeChannel) => {
@@ -277,7 +276,7 @@ const Index = () => {
               <p className="text-sm text-zinc-400">Only showing 2.4GHz networks</p>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleWiFiSubmit} className="space-y-3">
+              <div className="space-y-3">
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-zinc-300">
                     WiFi Network
@@ -299,7 +298,7 @@ const Index = () => {
                       <div
                         key={index}
                         onClick={() => handleNetworkSelect(network)}
-                        className={`search-result ${selectedSsid === network.ssid ? 'selected animate-bounce-in' : ''}`}
+                        className="search-result"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -318,42 +317,12 @@ const Index = () => {
                               Signal: {network.strength}% - Channel: {network.channel}
                             </p>
                           </div>
-                          {selectedSsid === network.ssid && (
-                            <CheckCircle className="h-5 w-5 text-green-500 animate-bounce-in" />
-                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-
-                {selectedSsid && (
-                  <div className="space-y-1 animate-fade-up">
-                    <label htmlFor="password" className="text-sm font-medium text-zinc-300">
-                      WiFi Password
-                    </label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500"
-                    />
-                  </div>
-                )}
-
-                {selectedSsid && (
-                  <Button
-                    type="submit"
-                    className="w-full h-9 text-sm bg-white text-zinc-900 hover:bg-zinc-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Connecting..." : "Connect to WiFi"}
-                  </Button>
-                )}
-              </form>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -463,6 +432,59 @@ const Index = () => {
           </Card>
         )}
       </div>
+
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-white">Connect to Network</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Enter the password for "{selectedSsid}"
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleWiFiSubmit}>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-9 border-zinc-700 bg-zinc-800/50 text-white placeholder:text-zinc-500 pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-3 text-zinc-400 hover:text-white"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setShowPasswordDialog(false);
+                  setPassword("");
+                  setShowPassword(false);
+                }}
+                className="text-zinc-400 hover:text-white"
+              >
+                Back
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-white text-zinc-900 hover:bg-zinc-200"
+              >
+                {isLoading ? "Connecting..." : "Connect"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
         <DialogContent className="bg-zinc-900 border-zinc-800">
